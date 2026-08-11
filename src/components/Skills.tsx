@@ -1,207 +1,108 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Atom, Code2, Coffee, Layout, Zap, Terminal } from 'lucide-react';
 
-const skillNodes = [
-  {
-    name: 'HTML',
-    icon: <Code2 size={24} />,
-    level: 90,
-    color: 'from-amber-400 to-orange-400',
-    accent: '#fb923c',
-    proficiency: 'Advanced',
-    size: 90,
-    position: { x: 180, y: 190 },
-    mobile: { x: 300, y: 135 },
-  },
-  {
-    name: 'CSS',
-    icon: <Layout size={24} />,
-    level: 85,
-    color: 'from-sky-400 to-blue-500',
-    accent: '#38bdf8',
-    proficiency: 'Advanced',
-    size: 90,
-    position: { x: 430, y: 170 },
-    mobile: { x: 220, y: 220 },
-  },
-  {
-    name: 'JavaScript',
-    icon: <Zap size={24} />,
-    level: 82,
-    color: 'from-amber-300 to-yellow-400',
-    accent: '#facc15',
-    proficiency: 'Advanced',
-    size: 90,
-    position: { x: 140, y: 360 },
-    mobile: { x: 380, y: 230 },
-  },
-  {
-    name: 'React.js',
-    icon: <Atom size={24} />,
-    level: 40,
-    color: 'from-cyan-400 to-violet-400',
-    accent: '#22d3ee',
-    proficiency: 'Beginner',
-    size: 60,
-    position: { x: 460, y: 390 },
-    mobile: { x: 240, y: 380 },
-  },
-  {
-    name: 'Java',
-    icon: <Coffee size={24} />,
-    level: 72,
-    color: 'from-emerald-400 to-teal-300',
-    accent: '#ef4444',
-    proficiency: 'Intermediate',
-    size: 90,
-    position: { x: 300, y: 90 },
-    mobile: { x: 340, y: 430 },
-  },
-  {
-    name: 'Python',
-    icon: <Terminal size={24} />,
-    level: 70,
-    color: 'from-emerald-300 to-slate-300',
-    accent: '#4ade80',
-    proficiency: 'Intermediate',
-    size: 90,
-    position: { x: 320, y: 500 },
-    mobile: { x: 300, y: 520 },
-  },
+const skills = [
+  { name: 'React.js', icon: <Atom size={20} />, levelLabel: 'Beginner', accent: '#22d3ee', featured: true, color: 'from-cyan-400 to-violet-400' },
+  { name: 'JavaScript', icon: <Zap size={20} />, levelLabel: 'Advanced', accent: '#facc15', featured: true, color: 'from-amber-300 to-yellow-400' },
+  { name: 'HTML', icon: <Code2 size={20} />, levelLabel: 'Advanced', accent: '#fb923c', featured: false, color: 'from-amber-400 to-orange-400' },
+  { name: 'CSS', icon: <Layout size={20} />, levelLabel: 'Advanced', accent: '#38bdf8', featured: false, color: 'from-sky-400 to-blue-500' },
+  { name: 'Java', icon: <Coffee size={20} />, levelLabel: 'Intermediate', accent: '#ef4444', featured: false, color: 'from-emerald-400 to-teal-300' },
+  { name: 'Python', icon: <Terminal size={20} />, levelLabel: 'Intermediate', accent: '#4ade80', featured: false, color: 'from-emerald-300 to-slate-300' },
 ];
 
-const centerPoint = { x: 300, y: 300 };
+const tools = ['Vite', 'Tailwind', 'Framer', 'React', 'TypeScript', 'ESBuild', 'Git', 'VSCode'];
 
 export default function Skills() {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [cursor, setCursor] = useState({ x: 0, y: 0, active: false });
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [hovered, setHovered] = useState<string | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
 
-  const nodes = useMemo(
-    () =>
-      skillNodes.map((node) => ({
-        ...node,
-        driftX: -6 + Math.random() * 12,
-        driftY: -8 + Math.random() * 16,
-        driftDuration: 6 + Math.random() * 3,
-        pointerFactor: 0.02 + Math.random() * 0.01,
-      })),
-    []
-  );
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 640);
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const handlePointerMove = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (isMobile || !containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = event.clientX - rect.left - rect.width / 2;
-    const y = event.clientY - rect.top - rect.height / 2;
-    setCursor({
-      x: Math.max(-1, Math.min(1, x / (rect.width * 0.45))),
-      y: Math.max(-1, Math.min(1, y / (rect.height * 0.45))),
-      active: true,
-    });
+  const handleMove = (e: React.MouseEvent, name: string) => {
+    const el = cardRefs.current[name];
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    el.style.setProperty('--mx', `${x}%`);
+    el.style.setProperty('--my', `${y}%`);
   };
 
-  const handlePointerLeave = () => {
-    setCursor({ x: 0, y: 0, active: false });
-    if (!isMobile) setHovered(null);
+  const handleLeave = (name: string) => {
+    const el = cardRefs.current[name];
+    if (!el) return;
+    el.style.setProperty('--mx', `50%`);
+    el.style.setProperty('--my', `50%`);
+    setHovered(null);
   };
 
   return (
-    <div className="space-y-8">
+    <section className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm uppercase tracking-[0.32em] text-cyan-300/80">Skill Constellation</p>
+          <p className="text-sm uppercase tracking-[0.32em] text-cyan-300/80">My skills</p>
           <h2 className="mt-3 text-4xl font-semibold text-white sm:text-5xl">Aurora-powered developer toolkit.</h2>
         </div>
         <p className="max-w-xl text-sm leading-7 text-slate-300 sm:text-base">
-          A floating network of skills orbiting a central core, with subtle motion, glow, and interactive depth.
+          Clean bento-style dashboard showing your featured and core skills.
         </p>
       </div>
 
-      <div className="skills-constellation">
-        <div className="stars" aria-hidden="true" />
-        <div
-          ref={containerRef}
-          className="constellation-container"
-          onMouseMove={handlePointerMove}
-          onMouseLeave={handlePointerLeave}
-          role="presentation"
-        >
-          <svg className="constellation-lines" viewBox="0 0 600 600" preserveAspectRatio="none" aria-hidden="true">
-            {nodes.map((node) => {
-              const deltaX = cursor.x * node.pointerFactor * 120;
-              const deltaY = cursor.y * node.pointerFactor * 120;
-              const nodeX = (isMobile ? node.mobile.x : node.position.x) + deltaX;
-              const nodeY = (isMobile ? node.mobile.y : node.position.y) + deltaY;
-              return (
-                <motion.line
-                  key={node.name}
-                  x1={centerPoint.x}
-                  y1={centerPoint.y}
-                  x2={nodeX}
-                  y2={nodeY}
-                  className={`constellation-line ${hovered === node.name ? 'line-active' : ''}`}
-                />
-              );
-            })}
-          </svg>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {skills.map((skill) => {
+          const isFeatured = skill.featured;
+          const colSpan = isFeatured ? 'lg:col-span-2 lg:row-span-2' : 'lg:col-span-1 lg:row-span-1';
+          return (
+            <motion.button
+              key={skill.name}
+              ref={(el) => (cardRefs.current[skill.name] = el)}
+              onMouseMove={(e) => handleMove(e, skill.name)}
+              onMouseLeave={() => handleLeave(skill.name)}
+              onMouseEnter={() => setHovered(skill.name)}
+              whileHover={{ y: -2 }}
+              transition={{ duration: 0.18 }}
+              className={`bento-card relative overflow-hidden rounded-2xl p-6 text-left border border-white/6 ${colSpan}`}
+              style={{ ['--accent' as any]: skill.accent }}
+            >
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent to-transparent" />
+              <div className="relative z-10">
+                <div className="flex items-start gap-3">
+                  <div className={`inline-flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-to-br ${skill.color} text-white shadow-sm`}>
+                    {skill.icon}
+                  </div>
+                </div>
 
-          <motion.div
-            className="core-node"
-            animate={{ scale: [1, 1.03, 1] }}
-            transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            <div className="core-glow" />
-            <span className="core-label">YASHU</span>
-          </motion.div>
-
-          {nodes.map((node) => {
-            const deltaX = cursor.x * node.pointerFactor * 100;
-            const deltaY = cursor.y * node.pointerFactor * 100;
-            const baseX = isMobile ? node.mobile.x : node.position.x;
-            const baseY = isMobile ? node.mobile.y : node.position.y;
-            const nodeX = baseX + deltaX;
-            const nodeY = baseY + deltaY;
-            const isActive = hovered === node.name;
-            return (
-              <div
-                key={node.name}
-                className="node-anchor"
-                style={{ left: nodeX, top: nodeY, width: node.size, height: node.size }}
-              >
-                <motion.button
-                  type="button"
-                  className="skill-node"
-                  onMouseEnter={() => setHovered(node.name)}
-                  onMouseLeave={() => !isMobile && setHovered(null)}
-                  onClick={() => setHovered((current) => (current === node.name ? null : node.name))}
-                  animate={{ x: [0, node.driftX, 0], y: [0, node.driftY, 0] }}
-                  transition={{ duration: node.driftDuration, repeat: Infinity, ease: 'easeInOut' }}
-                  whileHover={{ scale: 1.08 }}
-                  style={{
-                    boxShadow: `0 0 30px ${node.accent}33, inset 0 0 0 1px rgba(255,255,255,0.08)`,
-                    backgroundImage: `radial-gradient(circle at 30% 30%, ${node.accent}22, rgba(15,23,42,0.9) 45%)`,
-                  }}
-                >
-                  <span className="skill-icon">{node.icon}</span>
-                  <span className={`skill-label ${isActive ? 'skill-label-visible' : ''}`}>
-                    {node.name} — {node.level}%
-                  </span>
-                </motion.button>
+                <h3 className="mt-4 text-lg font-semibold font-sans text-white">{skill.name}</h3>
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="status-dot inline-block h-2.5 w-2.5 rounded-full" style={{ background: skill.accent }} />
+                  <span className="text-sm text-slate-400">{skill.levelLabel}</span>
+                </div>
               </div>
-            );
-          })}
+
+              <div className={`spotlight absolute inset-0 pointer-events-none`}></div>
+            </motion.button>
+          );
+        })}
+      </div>
+
+      <div className="mt-2">
+        <h4 className="text-sm font-semibold text-slate-300 mb-3">Tools & Technologies</h4>
+        <div className="relative overflow-hidden">
+          <div className="marquee">
+            {[...tools, ...tools].map((t, i) => (
+              <div key={`${t}-${i}`} className="chip inline-flex items-center justify-center px-4 py-2 mr-3 rounded-full bg-white/5 text-slate-200 text-sm">
+                {t}
+              </div>
+            ))}
+          </div>
+          <div className="marquee marquee--duplicate" aria-hidden="true">
+            {[...tools, ...tools].map((t, i) => (
+              <div key={`dup-${t}-${i}`} className="chip inline-flex items-center justify-center px-4 py-2 mr-3 rounded-full bg-white/5 text-slate-200 text-sm">
+                {t}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
